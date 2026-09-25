@@ -23,6 +23,14 @@ that are directly reproducible from the code in this repo (see
   flips — independent of any CV/ML code, so it's unit-tested with synthetic
   positions, no video or model weights required.
 
+## Screenshots
+
+![Video mode: detection + tracking + line-crossing counting on a busy street](screenshots/video_tracking.png)
+*Video mode — each tracked person keeps a stable ID across frames; the magenta line is the configurable counting gate.*
+
+![Image mode: single-shot person detection](screenshots/image_detection.png)
+*Image mode — one-shot detection with per-box confidence scores.*
+
 See [`SPEC.md`](SPEC.md) for the full design spec, including the data
 security constraints this app was built to satisfy.
 
