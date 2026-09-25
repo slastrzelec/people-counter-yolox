@@ -18,6 +18,7 @@ import tempfile
 import time
 
 import cv2
+import imageio
 import numpy as np
 import streamlit as st
 from PIL import Image
@@ -82,8 +83,13 @@ html, body, [class*="css"]  {
     font-weight: 500;
 }
 
+/* Cards always render on a fixed light surface with matching dark text, so
+   they stay legible regardless of whether the user's Streamlit theme is
+   light or dark (forcing only the background and letting text color follow
+   the app theme made text invisible in dark mode — see project notes). */
 .pc-card {
     background: var(--pc-bg-card);
+    color: #1E293B;
     border: 1px solid var(--pc-border);
     border-radius: 12px;
     padding: 1.25rem 1.4rem;
@@ -91,6 +97,14 @@ html, body, [class*="css"]  {
 }
 .pc-card h4 {
     margin-top: 0;
+    color: #1E293B;
+}
+.pc-card a {
+    color: var(--pc-primary);
+}
+.pc-card code {
+    background: rgba(15, 23, 42, 0.06);
+    color: #1E293B;
 }
 
 div[data-testid="stMetric"] {
@@ -98,6 +112,12 @@ div[data-testid="stMetric"] {
     border: 1px solid var(--pc-border);
     border-radius: 10px;
     padding: 0.85rem 1rem 0.6rem 1rem;
+}
+div[data-testid="stMetric"] label,
+div[data-testid="stMetric"] [data-testid="stMetricLabel"],
+div[data-testid="stMetric"] [data-testid="stMetricValue"],
+div[data-testid="stMetric"] [data-testid="stMetricDelta"] {
+    color: #1E293B !important;
 }
 
 div[data-testid="stFileUploaderDropzone"] {
@@ -246,8 +266,15 @@ def run_video_mode(conf_thresh: float) -> None:
         counter = VideoPeopleCounter(detector, line=line)
 
         out_path = tmp_path + "_out.mp4"
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        writer = cv2.VideoWriter(out_path, fourcc, fps, (width, height))
+        # H.264/yuv420p via imageio-ffmpeg (a bundled, self-contained ffmpeg
+        # binary — no system ffmpeg install required on Windows/Linux/macOS).
+        # cv2.VideoWriter's "mp4v" fourcc writes MPEG-4 Part 2, which browsers
+        # generally refuse to play inline ("video not found in a supported
+        # format"); H.264 in an mp4 container is universally playable.
+        writer = imageio.get_writer(
+            out_path, fps=fps, codec="libx264", pixelformat="yuv420p",
+            output_params=["-crf", "23"],
+        )
 
         progress = st.progress(0.0)
         status = st.empty()
@@ -258,13 +285,13 @@ def run_video_mode(conf_thresh: float) -> None:
             if not ok:
                 break
             result = counter.process_frame(frame)
-            writer.write(result.annotated)
+            writer.append_data(cv2.cvtColor(result.annotated, cv2.COLOR_BGR2RGB))
             frame_i += 1
             if n_frames > 0:
                 progress.progress(min(frame_i / n_frames, 1.0))
             status.text(f"Frame {frame_i}/{n_frames or '?'} — IN: {result.in_count}  OUT: {result.out_count}")
 
-        writer.release()
+        writer.close()
         cap.release()
         elapsed = time.time() - t0
 
