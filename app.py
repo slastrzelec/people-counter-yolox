@@ -33,116 +33,181 @@ ALLOWED_VIDEO_TYPES = ["mp4", "mov", "avi", "mkv"]
 
 st.set_page_config(page_title="People Counter", page_icon="🧑‍🤝‍🧑", layout="wide")
 
+# "Terminal / monitoring" theme — a deliberate, fixed dark look (not a light/
+# dark toggle), inspired by a CV/surveillance monitoring console. Forcing the
+# whole app to one fixed palette (rather than layering colors on top of
+# Streamlit's own light/dark theme) is intentional: an earlier version tried
+# to float cards on top of the user's theme and broke in dark mode (light
+# card background, theme-controlled text color -> invisible). Owning every
+# surface color here avoids that class of bug entirely.
 CUSTOM_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-html, body, [class*="css"]  {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-}
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
-    --pc-primary: #4F46E5;
-    --pc-primary-dark: #3730A3;
-    --pc-accent: #06B6D4;
-    --pc-bg-card: #F8FAFC;
-    --pc-border: #E2E8F0;
-    --pc-text-muted: #64748B;
+    --pc-bg: #0A0E12;
+    --pc-surface: #11161C;
+    --pc-surface-2: #0D1216;
+    --pc-border: #1F2A33;
+    --pc-text: #D8E3DD;
+    --pc-text-bright: #F2F6F4;
+    --pc-text-muted: #7C8B86;
+    --pc-text-faint: #4A5A55;
+    --pc-amber: #F5A524;
+    --pc-green: #34D399;
 }
+
+html, body, [class*="css"], .stApp {
+    font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+    background: var(--pc-bg) !important;
+    color: var(--pc-text) !important;
+}
+.stApp header[data-testid="stHeader"] { background: var(--pc-bg) !important; }
+section[data-testid="stSidebar"] {
+    background: var(--pc-surface-2) !important;
+    border-right: 1px solid var(--pc-border);
+}
+section[data-testid="stSidebar"] * { color: var(--pc-text) !important; }
+h1, h2, h3, h4, h5, h6, p, span, label, div { color: var(--pc-text); }
 
 .pc-hero {
-    background: linear-gradient(135deg, var(--pc-primary) 0%, var(--pc-accent) 100%);
-    border-radius: 16px;
-    padding: 2rem 2.25rem;
-    margin-bottom: 1.5rem;
-    color: white;
+    border-bottom: 1px solid var(--pc-border);
+    padding-bottom: 1.4rem;
+    margin-bottom: 1.6rem;
+}
+.pc-live {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.pc-live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--pc-green);
+}
+.pc-live-label {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--pc-text-muted);
+    text-transform: uppercase;
 }
 .pc-hero h1 {
-    margin: 0 0 0.35rem 0;
-    font-size: 2rem;
+    margin: 0 0 10px 0;
+    font-size: 2.1rem;
     font-weight: 700;
-    color: white;
+    color: var(--pc-text-bright) !important;
+    letter-spacing: -0.01em;
 }
+.pc-hero h1 .accent { color: var(--pc-amber); }
 .pc-hero p {
     margin: 0;
-    font-size: 1.02rem;
-    opacity: 0.92;
-}
-.pc-badges {
-    margin-top: 0.9rem;
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-.pc-badge {
-    background: rgba(255,255,255,0.18);
-    border: 1px solid rgba(255,255,255,0.35);
-    border-radius: 999px;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.8rem;
-    font-weight: 500;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--pc-text-muted) !important;
+    max-width: 640px;
 }
 
-/* Cards always render on a fixed light surface with matching dark text, so
-   they stay legible regardless of whether the user's Streamlit theme is
-   light or dark (forcing only the background and letting text color follow
-   the app theme made text invisible in dark mode — see project notes). */
 .pc-card {
-    background: var(--pc-bg-card);
-    color: #1E293B;
+    background: var(--pc-surface);
+    color: var(--pc-text);
     border: 1px solid var(--pc-border);
-    border-radius: 12px;
+    border-radius: 4px;
     padding: 1.25rem 1.4rem;
     margin-bottom: 1rem;
 }
 .pc-card h4 {
     margin-top: 0;
-    color: #1E293B;
+    color: var(--pc-text-bright) !important;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
 }
-.pc-card a {
-    color: var(--pc-primary);
-}
+.pc-card, .pc-card p, .pc-card li, .pc-card strong { color: var(--pc-text) !important; }
+.pc-card a { color: var(--pc-amber) !important; }
 .pc-card code {
-    background: rgba(15, 23, 42, 0.06);
-    color: #1E293B;
+    background: rgba(245, 165, 36, 0.08);
+    color: var(--pc-amber) !important;
+    border-radius: 3px;
 }
+.pc-card table { color: var(--pc-text); }
+.pc-card th { color: var(--pc-text-muted) !important; text-transform: uppercase; font-size: 11px; letter-spacing: 0.06em; }
 
+/* st.metric, restyled as a monitoring-console stat tile */
 div[data-testid="stMetric"] {
-    background: var(--pc-bg-card);
+    background: var(--pc-surface);
     border: 1px solid var(--pc-border);
-    border-radius: 10px;
-    padding: 0.85rem 1rem 0.6rem 1rem;
+    border-radius: 4px;
+    padding: 0.9rem 1.1rem 0.7rem 1.1rem;
 }
-div[data-testid="stMetric"] label,
-div[data-testid="stMetric"] [data-testid="stMetricLabel"],
-div[data-testid="stMetric"] [data-testid="stMetricValue"],
-div[data-testid="stMetric"] [data-testid="stMetricDelta"] {
-    color: #1E293B !important;
+div[data-testid="stMetric"] [data-testid="stMetricLabel"] {
+    color: var(--pc-text-muted) !important;
+    font-size: 11px !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
 }
+div[data-testid="stMetric"] [data-testid="stMetricValue"] {
+    color: var(--pc-amber) !important;
+    font-weight: 700;
+}
+div[data-testid="stMetric"] [data-testid="stMetricDelta"] { color: var(--pc-green) !important; }
 
 div[data-testid="stFileUploaderDropzone"] {
-    border-radius: 12px;
+    background: var(--pc-surface-2) !important;
+    border: 1px dashed var(--pc-border) !important;
+    border-radius: 4px;
 }
+div[data-testid="stFileUploaderDropzone"] * { color: var(--pc-text-muted) !important; }
 
 .stButton > button, .stDownloadButton > button {
-    border-radius: 8px;
+    border-radius: 4px;
     font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    background: transparent;
+    color: var(--pc-amber) !important;
+    border: 1px solid var(--pc-amber) !important;
 }
-.stButton > button[kind="primary"], .stDownloadButton > button {
-    background: var(--pc-primary);
-    border-color: var(--pc-primary);
+.stButton > button:hover, .stDownloadButton > button:hover {
+    background: rgba(245, 165, 36, 0.1) !important;
 }
-.stButton > button[kind="primary"]:hover, .stDownloadButton > button:hover {
-    background: var(--pc-primary-dark);
-    border-color: var(--pc-primary-dark);
+.stButton > button[kind="primary"] {
+    background: var(--pc-amber) !important;
+    color: #0A0E12 !important;
+}
+.stButton > button[kind="primary"]:hover { background: #FFC168 !important; }
+
+div[data-testid="stTabs"] button[role="tab"] {
+    color: var(--pc-text-muted) !important;
+    font-family: 'JetBrains Mono', monospace;
+}
+div[data-testid="stTabs"] button[aria-selected="true"] {
+    color: var(--pc-amber) !important;
+}
+div[data-testid="stTabs"] div[data-baseweb="tab-highlight"] { background-color: var(--pc-amber) !important; }
+div[data-testid="stTabs"] div[data-baseweb="tab-border"] { background-color: var(--pc-border) !important; }
+
+div[data-testid="stExpander"] {
+    background: var(--pc-surface);
+    border: 1px solid var(--pc-border) !important;
+    border-radius: 4px;
+}
+div[data-testid="stDataFrame"] { border: 1px solid var(--pc-border); border-radius: 4px; }
+.stProgress > div > div { background-color: var(--pc-amber) !important; }
+div[data-testid="stAlertContentInfo"], div[data-testid="stAlertContentSuccess"], div[data-testid="stAlertContentError"] {
+    font-family: 'JetBrains Mono', monospace;
 }
 
 .pc-footer {
     margin-top: 2rem;
     padding-top: 1rem;
     border-top: 1px solid var(--pc-border);
-    color: var(--pc-text-muted);
-    font-size: 0.85rem;
+    display: flex;
+    gap: 18px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pc-text-faint) !important;
 }
 </style>
 """
@@ -316,14 +381,13 @@ def render_hero() -> None:
     st.markdown(
         """
         <div class="pc-hero">
-            <h1>🧑‍🤝‍🧑 People Counter</h1>
-            <p>Local person detection &amp; line-crossing counting — nothing you upload ever leaves this app.</p>
-            <div class="pc-badges">
-                <span class="pc-badge">YOLOX-nano · ONNX Runtime</span>
-                <span class="pc-badge">Runs 100% on CPU</span>
-                <span class="pc-badge">No third-party APIs</span>
-                <span class="pc-badge">No stored uploads</span>
+            <div class="pc-live">
+                <div class="pc-live-dot"></div>
+                <span class="pc-live-label">live · local inference · cpu</span>
             </div>
+            <h1>people_counter<span class="accent">.detect()</span></h1>
+            <p>Local person detection &amp; line-crossing count. YOLOX-nano · ONNX Runtime.
+            Nothing you upload ever leaves this process.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -404,7 +468,7 @@ def main() -> None:
     st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
     render_hero()
 
-    tab_detect, tab_about = st.tabs(["🔍 Detect", "ℹ️ About"])
+    tab_detect, tab_about = st.tabs(["detect", "about"])
 
     with tab_detect:
         mode = st.radio("Mode", ["Image", "Video"], horizontal=True)
@@ -420,7 +484,13 @@ def main() -> None:
         render_about()
 
     st.markdown(
-        '<div class="pc-footer">People Counter — local YOLOX-nano inference, MIT licensed.</div>',
+        """
+        <div class="pc-footer">
+            <span>no third-party apis</span><span>·</span>
+            <span>nothing stored</span><span>·</span>
+            <span>runs fully offline</span>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
