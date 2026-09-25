@@ -40,31 +40,30 @@ ALLOWED_VIDEO_TYPES = ["mp4", "mov", "avi", "mkv"]
 
 st.set_page_config(page_title="People Counter", page_icon="🧑‍🤝‍🧑", layout="wide")
 
-# "Bold modern" theme — a light, high-contrast product/startup look (Space
-# Grotesk headings + IBM Plex Sans body, purple/lime accents on white).
-# One fixed palette is forced app-wide (same reasoning as before: floating
-# colors on top of Streamlit's own light/dark theme is what caused the
-# earlier invisible-text bug — owning every surface color avoids that class
-# of bug entirely, regardless of which look is on top).
+# "Editorial / warm" theme — a calm, magazine-like look (Fraunces display
+# serif headings + Source Serif 4 body, cream paper background, terracotta
+# accent). One fixed palette is forced app-wide (same reasoning as before:
+# floating colors on top of Streamlit's own light/dark theme is what caused
+# the earlier invisible-text bug — owning every surface color avoids that
+# class of bug entirely, regardless of which look is on top).
 CUSTOM_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap');
 
 :root {
-    --pc-bg: #FFFFFF;
+    --pc-bg: #FAF7F2;
     --pc-surface: #FFFFFF;
-    --pc-surface-2: #F7F7F9;
-    --pc-border: #D8DAE0;
-    --pc-text: #14161A;
-    --pc-text-bright: #14161A;
-    --pc-text-muted: #4A4E57;
-    --pc-text-faint: #A8ACB4;
-    --pc-purple: #4F3DF5;
-    --pc-lime: #C8F169;
+    --pc-surface-2: #F2ECE1;
+    --pc-border: #E4DCCF;
+    --pc-text: #2B2620;
+    --pc-text-bright: #2B2620;
+    --pc-text-muted: #55493D;
+    --pc-text-faint: #9A8F7F;
+    --pc-terracotta: #C2634A;
 }
 
 html, body, [class*="css"], .stApp {
-    font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
+    font-family: 'Source Serif 4', Georgia, serif !important;
     background: var(--pc-bg) !important;
     color: var(--pc-text) !important;
 }
@@ -74,7 +73,7 @@ section[data-testid="stSidebar"] {
     border-right: 1px solid var(--pc-border);
 }
 section[data-testid="stSidebar"] * { color: var(--pc-text) !important; }
-h1, h2, h3, h4, h5, h6 { font-family: 'Space Grotesk', sans-serif !important; color: var(--pc-text); }
+h1, h2, h3, h4, h5, h6 { font-family: 'Fraunces', Georgia, serif !important; color: var(--pc-text); }
 p, span, label, div { color: var(--pc-text); }
 
 .pc-hero {
@@ -82,30 +81,25 @@ p, span, label, div { color: var(--pc-text); }
     padding-bottom: 1.4rem;
     margin-bottom: 1.6rem;
 }
-.pc-badge {
-    display: inline-block;
-    background: var(--pc-lime);
-    color: var(--pc-text);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+.pc-kicker {
+    font-size: 12px;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    padding: 4px 10px;
-    border-radius: 3px;
-    margin-bottom: 14px;
+    color: var(--pc-text-faint);
+    margin-bottom: 16px;
 }
 .pc-hero h1 {
     margin: 0 0 10px 0;
-    font-size: 2.4rem;
-    font-weight: 700;
+    font-size: 2.6rem;
+    font-weight: 600;
     color: var(--pc-text-bright) !important;
     letter-spacing: -0.01em;
 }
-.pc-hero h1 .accent { color: var(--pc-purple); }
+.pc-hero h1 .accent { color: var(--pc-terracotta); }
 .pc-hero p {
     margin: 0;
-    font-size: 0.98rem;
-    line-height: 1.55;
+    font-size: 1rem;
+    line-height: 1.6;
     color: var(--pc-text-muted) !important;
     max-width: 640px;
 }
@@ -114,7 +108,7 @@ p, span, label, div { color: var(--pc-text); }
     background: var(--pc-surface);
     color: var(--pc-text);
     border: 1px solid var(--pc-border);
-    border-radius: 6px;
+    border-radius: 2px;
     padding: 1.25rem 1.4rem;
     margin-bottom: 1rem;
 }
@@ -124,22 +118,26 @@ p, span, label, div { color: var(--pc-text); }
     font-size: 12px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+    font-family: 'Source Serif 4', serif !important;
+    font-weight: 600;
 }
 .pc-card, .pc-card p, .pc-card li, .pc-card strong { color: var(--pc-text) !important; }
-.pc-card a { color: var(--pc-purple) !important; }
+.pc-card a { color: var(--pc-terracotta) !important; }
 .pc-card code {
-    background: rgba(79, 61, 245, 0.08);
-    color: var(--pc-purple) !important;
+    background: rgba(194, 99, 74, 0.08);
+    color: var(--pc-terracotta) !important;
     border-radius: 3px;
+    font-family: ui-monospace, monospace;
 }
 .pc-card table { color: var(--pc-text); }
 .pc-card th { color: var(--pc-text-muted) !important; text-transform: uppercase; font-size: 11px; letter-spacing: 0.06em; }
 
-/* st.metric, restyled as a bold stat tile */
+/* st.metric, restyled as an editorial pull-figure */
 div[data-testid="stMetric"] {
     background: var(--pc-surface);
-    border: 2px solid var(--pc-text);
-    border-radius: 6px;
+    border: 1px solid var(--pc-border);
+    border-left: 3px solid var(--pc-terracotta);
+    border-radius: 2px;
     padding: 0.9rem 1.1rem 0.7rem 1.1rem;
 }
 div[data-testid="stMetric"] [data-testid="stMetricLabel"] {
@@ -149,55 +147,55 @@ div[data-testid="stMetric"] [data-testid="stMetricLabel"] {
     text-transform: uppercase;
 }
 div[data-testid="stMetric"] [data-testid="stMetricValue"] {
-    color: var(--pc-purple) !important;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
+    color: var(--pc-text) !important;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
 }
-div[data-testid="stMetric"] [data-testid="stMetricDelta"] { color: var(--pc-purple) !important; }
+div[data-testid="stMetric"] [data-testid="stMetricDelta"] { color: var(--pc-terracotta) !important; }
 
 div[data-testid="stFileUploaderDropzone"] {
     background: var(--pc-surface-2) !important;
-    border: 2px dashed var(--pc-border) !important;
-    border-radius: 6px;
+    border: 1px dashed var(--pc-border) !important;
+    border-radius: 2px;
 }
 div[data-testid="stFileUploaderDropzone"] * { color: var(--pc-text-muted) !important; }
 
 .stButton > button, .stDownloadButton > button {
-    border-radius: 6px;
+    border-radius: 2px;
     font-weight: 600;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Source Serif 4', serif;
     background: transparent;
-    color: var(--pc-purple) !important;
-    border: 2px solid var(--pc-purple) !important;
+    color: var(--pc-terracotta) !important;
+    border: 1px solid var(--pc-terracotta) !important;
 }
 .stButton > button:hover, .stDownloadButton > button:hover {
-    background: rgba(79, 61, 245, 0.08) !important;
+    background: rgba(194, 99, 74, 0.08) !important;
 }
 .stButton > button[kind="primary"] {
-    background: var(--pc-purple) !important;
+    background: var(--pc-terracotta) !important;
     color: #FFFFFF !important;
-    border: 2px solid var(--pc-purple) !important;
+    border: 1px solid var(--pc-terracotta) !important;
 }
-.stButton > button[kind="primary"]:hover { background: #3D2ED0 !important; }
+.stButton > button[kind="primary"]:hover { background: #A8543D !important; }
 
 div[data-testid="stTabs"] button[role="tab"] {
     color: var(--pc-text-muted) !important;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Fraunces', serif;
     font-weight: 500;
 }
 div[data-testid="stTabs"] button[aria-selected="true"] {
-    color: var(--pc-purple) !important;
+    color: var(--pc-terracotta) !important;
 }
-div[data-testid="stTabs"] div[data-baseweb="tab-highlight"] { background-color: var(--pc-purple) !important; }
+div[data-testid="stTabs"] div[data-baseweb="tab-highlight"] { background-color: var(--pc-terracotta) !important; }
 div[data-testid="stTabs"] div[data-baseweb="tab-border"] { background-color: var(--pc-border) !important; }
 
 div[data-testid="stExpander"] {
     background: var(--pc-surface);
     border: 1px solid var(--pc-border) !important;
-    border-radius: 6px;
+    border-radius: 2px;
 }
-div[data-testid="stDataFrame"] { border: 1px solid var(--pc-border); border-radius: 6px; }
-.stProgress > div > div { background-color: var(--pc-purple) !important; }
+div[data-testid="stDataFrame"] { border: 1px solid var(--pc-border); border-radius: 2px; }
+.stProgress > div > div { background-color: var(--pc-terracotta) !important; }
 
 .pc-footer {
     margin-top: 2rem;
@@ -223,10 +221,10 @@ def draw_boxes(bgr_image: np.ndarray, boxes: np.ndarray) -> np.ndarray:
     out = bgr_image.copy()
     for x1, y1, x2, y2, score in boxes:
         x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-        cv2.rectangle(out, (x1, y1), (x2, y2), (245, 61, 79), 3)
+        cv2.rectangle(out, (x1, y1), (x2, y2), (74, 99, 194), 3)
         label = f"{score:.2f}"
         (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 2)
-        cv2.rectangle(out, (x1, max(0, y1 - th - 10)), (x1 + tw + 8, y1), (245, 61, 79), -1)
+        cv2.rectangle(out, (x1, max(0, y1 - th - 10)), (x1 + tw + 8, y1), (74, 99, 194), -1)
         cv2.putText(out, label, (x1 + 4, max(12, y1 - 6)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2)
     return out
@@ -400,11 +398,11 @@ def render_hero() -> None:
     st.markdown(
         """
         <div class="pc-hero">
-            <div class="pc-badge">Local inference · no cloud</div>
+            <div class="pc-kicker">Computer vision · portfolio project</div>
             <h1>People, <span class="accent">counted.</span></h1>
-            <p>Detects people in a photo, or tracks them across a video and counts
-            line crossings — IN / OUT / NET. YOLOX-nano · ONNX Runtime.
-            Nothing you upload ever leaves this process.</p>
+            <p>A local detector finds people in a photo, or follows them through a
+            video and tallies who crossed a line you draw — no cloud, no accounts,
+            nothing kept once the frame is processed.</p>
         </div>
         """,
         unsafe_allow_html=True,
