@@ -1,0 +1,17 @@
+{
+  "dataset": "coco128 (ultralytics/assets), train2017 subset, class 0 = person",
+  "n_images_total": 128,
+  "n_images_with_person_gt": 61,
+  "conf_thresh": 0.35,
+  "iou_match_thresh": 0.5,
+  "true_positives": 132,
+  "false_positives": 28,
+  "false_negatives": 122,
+  "precision": 0.825,
+  "recall": 0.5197,
+  "f1": 0.6377,
+  "images_without_person_gt_correctly_empty": 65,
+  "images_without_person_gt_with_false_positive": 2,
+  "mean_inference_latency_ms_cpu": 10.5,
+  "approx_fps_cpu": 95.4
+}

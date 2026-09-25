@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# scratch / local data — not part of the repo (see README for how to
+# regenerate coco128_raw/ and eval_results.json)
+coco128.zip
+coco128_raw/
+annotated_check.jpg
+streamlit.log
+
+# uploads are never persisted by the app itself, but just in case
+*.mp4.tmp
+test_sample.jpg

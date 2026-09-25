@@ -1,0 +1,7 @@
+onnxruntime>=1.30
+opencv-python-headless>=5.0
+numpy>=2.0
+supervision>=0.30
+trackers>=2.6
+streamlit>=1.60
+Pillow>=12.0
