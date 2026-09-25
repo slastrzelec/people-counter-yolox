@@ -38,6 +38,14 @@ MAX_PROCESS_LONG_SIDE = 960  # px; frames are downscaled to this before processi
 ALLOWED_IMAGE_TYPES = ["jpg", "jpeg", "png"]
 ALLOWED_VIDEO_TYPES = ["mp4", "mov", "avi", "mkv"]
 
+# Bundled sample files so a visitor can try the app without hunting for their
+# own file first. Both are used with the owner's explicit, informed consent
+# (see SPEC.md) — the image in particular contains identifiable people and is
+# included deliberately, not by default policy.
+SAMPLES_DIR = os.path.join(os.path.dirname(__file__), "samples")
+SAMPLE_IMAGE_PATH = os.path.join(SAMPLES_DIR, "sample_image.jpg")
+SAMPLE_VIDEO_PATH = os.path.join(SAMPLES_DIR, "sample_video.mp4")
+
 st.set_page_config(page_title="People Counter", page_icon="🧑‍🤝‍🧑", layout="wide")
 
 # "Editorial / warm" theme — a calm, magazine-like look (Fraunces display
@@ -232,19 +240,35 @@ def draw_boxes(bgr_image: np.ndarray, boxes: np.ndarray) -> np.ndarray:
 
 def run_image_mode(conf_thresh: float) -> None:
     uploaded = st.file_uploader("Upload an image", type=ALLOWED_IMAGE_TYPES)
-    if uploaded is None:
-        st.info("Upload a JPG or PNG to count people in it.")
+    if uploaded is not None:
+        st.session_state.use_sample_image = False
+
+    if uploaded is None and os.path.exists(SAMPLE_IMAGE_PATH):
+        if st.button("Use the sample image", key="use_sample_image_btn"):
+            st.session_state.use_sample_image = True
+
+    using_sample = uploaded is None and st.session_state.get("use_sample_image", False)
+
+    if uploaded is None and not using_sample:
+        st.info("Upload a JPG or PNG to count people in it — or use the sample above.")
         return
 
-    if uploaded.size > MAX_UPLOAD_MB * 1024 * 1024:
-        st.error(f"File too large (max {MAX_UPLOAD_MB} MB).")
-        return
-
-    try:
-        pil_img = Image.open(uploaded).convert("RGB")
-    except Exception:
-        st.error("Could not read this file as an image. Please upload a valid JPG or PNG.")
-        return
+    if using_sample:
+        st.caption("Using the bundled sample image.")
+        try:
+            pil_img = Image.open(SAMPLE_IMAGE_PATH).convert("RGB")
+        except Exception:
+            st.error("Could not read the bundled sample image.")
+            return
+    else:
+        if uploaded.size > MAX_UPLOAD_MB * 1024 * 1024:
+            st.error(f"File too large (max {MAX_UPLOAD_MB} MB).")
+            return
+        try:
+            pil_img = Image.open(uploaded).convert("RGB")
+        except Exception:
+            st.error("Could not read this file as an image. Please upload a valid JPG or PNG.")
+            return
 
     bgr = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
     detector = load_detector(conf_thresh)
@@ -293,11 +317,22 @@ def run_video_mode(conf_thresh: float) -> None:
     ly2 = c4.slider("Line y2 (%)", 0, 100, 100)
 
     uploaded = st.file_uploader("Upload a video", type=ALLOWED_VIDEO_TYPES)
-    if uploaded is None:
-        st.info("Upload a short MP4/MOV/AVI clip to count people crossing a line.")
+    if uploaded is not None:
+        st.session_state.use_sample_video = False
+
+    if uploaded is None and os.path.exists(SAMPLE_VIDEO_PATH):
+        if st.button("Use the sample video", key="use_sample_video_btn"):
+            st.session_state.use_sample_video = True
+
+    using_sample = uploaded is None and st.session_state.get("use_sample_video", False)
+
+    if uploaded is None and not using_sample:
+        st.info("Upload a short MP4/MOV/AVI clip to count people crossing a line — or use the sample above.")
         return
 
-    if uploaded.size > MAX_UPLOAD_MB * 1024 * 1024:
+    if using_sample:
+        st.caption("Using the bundled sample video.")
+    elif uploaded.size > MAX_UPLOAD_MB * 1024 * 1024:
         st.error(f"File too large (max {MAX_UPLOAD_MB} MB).")
         return
 
@@ -306,13 +341,20 @@ def run_video_mode(conf_thresh: float) -> None:
 
     # OpenCV's VideoCapture needs a real file path; write to a private temp
     # file and always remove it afterward (finally-block), regardless of
-    # success or failure, so nothing uploaded is left on disk.
-    suffix = os.path.splitext(uploaded.name)[1] or ".mp4"
+    # success or failure, so nothing uploaded (or the sample) is left
+    # lying around as a stray temp file.
+    if using_sample:
+        suffix = ".mp4"
+        with open(SAMPLE_VIDEO_PATH, "rb") as f:
+            video_bytes = f.read()
+    else:
+        suffix = os.path.splitext(uploaded.name)[1] or ".mp4"
+        video_bytes = uploaded.read()
     tmp_path = None
     out_path = None
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-            tmp.write(uploaded.read())
+            tmp.write(video_bytes)
             tmp_path = tmp.name
 
         cap = cv2.VideoCapture(tmp_path)
