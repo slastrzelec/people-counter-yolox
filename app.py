@@ -28,6 +28,13 @@ from video_counter import VideoPeopleCounter
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "yolox_nano.onnx")
 MAX_UPLOAD_MB = 200
+# Streamlit Community Cloud's free tier is CPU-only with ~1GB RAM. Processing
+# every frame of a long or very high-resolution video (detection + drawing +
+# H.264 encoding) can exceed that and crash the whole process (observed:
+# healthz EOF mid-video, no Python traceback — a resource kill, not a code
+# bug). These two caps keep video mode within what the free tier can handle.
+MAX_VIDEO_FRAMES = 1800  # ~60s at 30fps
+MAX_PROCESS_LONG_SIDE = 960  # px; frames are downscaled to this before processing
 ALLOWED_IMAGE_TYPES = ["jpg", "jpeg", "png"]
 ALLOWED_VIDEO_TYPES = ["mp4", "mov", "avi", "mkv"]
 
@@ -315,10 +322,26 @@ def run_video_mode(conf_thresh: float) -> None:
             st.error("Could not read this file as a video. Please upload a valid MP4/MOV/AVI/MKV.")
             return
 
-        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        orig_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        orig_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
         n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        if n_frames > MAX_VIDEO_FRAMES:
+            st.error(
+                f"This video has ~{n_frames} frames (~{n_frames / fps:.0f}s) — "
+                f"longer than the {MAX_VIDEO_FRAMES}-frame limit this demo processes "
+                "on shared hosting. Please upload a shorter clip."
+            )
+            cap.release()
+            return
+
+        # Downscale before processing: cuts CPU (detection + drawing) and
+        # memory roughly quadratically for high-resolution uploads, at the
+        # cost of output resolution — an acceptable tradeoff for a demo.
+        scale = min(1.0, MAX_PROCESS_LONG_SIDE / max(orig_width, orig_height))
+        width = max(1, round(orig_width * scale))
+        height = max(1, round(orig_height * scale))
 
         line = (lx1 / 100 * width, ly1 / 100 * height, lx2 / 100 * width, ly2 / 100 * height)
         detector = load_detector(conf_thresh)
@@ -343,6 +366,8 @@ def run_video_mode(conf_thresh: float) -> None:
             ok, frame = cap.read()
             if not ok:
                 break
+            if scale < 1.0:
+                frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
             result = counter.process_frame(frame)
             writer.append_data(cv2.cvtColor(result.annotated, cv2.COLOR_BGR2RGB))
             frame_i += 1
