@@ -33,32 +33,31 @@ ALLOWED_VIDEO_TYPES = ["mp4", "mov", "avi", "mkv"]
 
 st.set_page_config(page_title="People Counter", page_icon="🧑‍🤝‍🧑", layout="wide")
 
-# "Terminal / monitoring" theme — a deliberate, fixed dark look (not a light/
-# dark toggle), inspired by a CV/surveillance monitoring console. Forcing the
-# whole app to one fixed palette (rather than layering colors on top of
-# Streamlit's own light/dark theme) is intentional: an earlier version tried
-# to float cards on top of the user's theme and broke in dark mode (light
-# card background, theme-controlled text color -> invisible). Owning every
-# surface color here avoids that class of bug entirely.
+# "Bold modern" theme — a light, high-contrast product/startup look (Space
+# Grotesk headings + IBM Plex Sans body, purple/lime accents on white).
+# One fixed palette is forced app-wide (same reasoning as before: floating
+# colors on top of Streamlit's own light/dark theme is what caused the
+# earlier invisible-text bug — owning every surface color avoids that class
+# of bug entirely, regardless of which look is on top).
 CUSTOM_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 
 :root {
-    --pc-bg: #0A0E12;
-    --pc-surface: #11161C;
-    --pc-surface-2: #0D1216;
-    --pc-border: #1F2A33;
-    --pc-text: #D8E3DD;
-    --pc-text-bright: #F2F6F4;
-    --pc-text-muted: #7C8B86;
-    --pc-text-faint: #4A5A55;
-    --pc-amber: #F5A524;
-    --pc-green: #34D399;
+    --pc-bg: #FFFFFF;
+    --pc-surface: #FFFFFF;
+    --pc-surface-2: #F7F7F9;
+    --pc-border: #D8DAE0;
+    --pc-text: #14161A;
+    --pc-text-bright: #14161A;
+    --pc-text-muted: #4A4E57;
+    --pc-text-faint: #A8ACB4;
+    --pc-purple: #4F3DF5;
+    --pc-lime: #C8F169;
 }
 
 html, body, [class*="css"], .stApp {
-    font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+    font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
     background: var(--pc-bg) !important;
     color: var(--pc-text) !important;
 }
@@ -68,42 +67,37 @@ section[data-testid="stSidebar"] {
     border-right: 1px solid var(--pc-border);
 }
 section[data-testid="stSidebar"] * { color: var(--pc-text) !important; }
-h1, h2, h3, h4, h5, h6, p, span, label, div { color: var(--pc-text); }
+h1, h2, h3, h4, h5, h6 { font-family: 'Space Grotesk', sans-serif !important; color: var(--pc-text); }
+p, span, label, div { color: var(--pc-text); }
 
 .pc-hero {
     border-bottom: 1px solid var(--pc-border);
     padding-bottom: 1.4rem;
     margin-bottom: 1.6rem;
 }
-.pc-live {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 14px;
-}
-.pc-live-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--pc-green);
-}
-.pc-live-label {
-    font-size: 12px;
-    letter-spacing: 0.14em;
-    color: var(--pc-text-muted);
+.pc-badge {
+    display: inline-block;
+    background: var(--pc-lime);
+    color: var(--pc-text);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 3px;
+    margin-bottom: 14px;
 }
 .pc-hero h1 {
     margin: 0 0 10px 0;
-    font-size: 2.1rem;
+    font-size: 2.4rem;
     font-weight: 700;
     color: var(--pc-text-bright) !important;
     letter-spacing: -0.01em;
 }
-.pc-hero h1 .accent { color: var(--pc-amber); }
+.pc-hero h1 .accent { color: var(--pc-purple); }
 .pc-hero p {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 0.98rem;
     line-height: 1.55;
     color: var(--pc-text-muted) !important;
     max-width: 640px;
@@ -113,7 +107,7 @@ h1, h2, h3, h4, h5, h6, p, span, label, div { color: var(--pc-text); }
     background: var(--pc-surface);
     color: var(--pc-text);
     border: 1px solid var(--pc-border);
-    border-radius: 4px;
+    border-radius: 6px;
     padding: 1.25rem 1.4rem;
     margin-bottom: 1rem;
 }
@@ -125,20 +119,20 @@ h1, h2, h3, h4, h5, h6, p, span, label, div { color: var(--pc-text); }
     text-transform: uppercase;
 }
 .pc-card, .pc-card p, .pc-card li, .pc-card strong { color: var(--pc-text) !important; }
-.pc-card a { color: var(--pc-amber) !important; }
+.pc-card a { color: var(--pc-purple) !important; }
 .pc-card code {
-    background: rgba(245, 165, 36, 0.08);
-    color: var(--pc-amber) !important;
+    background: rgba(79, 61, 245, 0.08);
+    color: var(--pc-purple) !important;
     border-radius: 3px;
 }
 .pc-card table { color: var(--pc-text); }
 .pc-card th { color: var(--pc-text-muted) !important; text-transform: uppercase; font-size: 11px; letter-spacing: 0.06em; }
 
-/* st.metric, restyled as a monitoring-console stat tile */
+/* st.metric, restyled as a bold stat tile */
 div[data-testid="stMetric"] {
     background: var(--pc-surface);
-    border: 1px solid var(--pc-border);
-    border-radius: 4px;
+    border: 2px solid var(--pc-text);
+    border-radius: 6px;
     padding: 0.9rem 1.1rem 0.7rem 1.1rem;
 }
 div[data-testid="stMetric"] [data-testid="stMetricLabel"] {
@@ -148,55 +142,55 @@ div[data-testid="stMetric"] [data-testid="stMetricLabel"] {
     text-transform: uppercase;
 }
 div[data-testid="stMetric"] [data-testid="stMetricValue"] {
-    color: var(--pc-amber) !important;
+    color: var(--pc-purple) !important;
+    font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
 }
-div[data-testid="stMetric"] [data-testid="stMetricDelta"] { color: var(--pc-green) !important; }
+div[data-testid="stMetric"] [data-testid="stMetricDelta"] { color: var(--pc-purple) !important; }
 
 div[data-testid="stFileUploaderDropzone"] {
     background: var(--pc-surface-2) !important;
-    border: 1px dashed var(--pc-border) !important;
-    border-radius: 4px;
+    border: 2px dashed var(--pc-border) !important;
+    border-radius: 6px;
 }
 div[data-testid="stFileUploaderDropzone"] * { color: var(--pc-text-muted) !important; }
 
 .stButton > button, .stDownloadButton > button {
-    border-radius: 4px;
+    border-radius: 6px;
     font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Space Grotesk', sans-serif;
     background: transparent;
-    color: var(--pc-amber) !important;
-    border: 1px solid var(--pc-amber) !important;
+    color: var(--pc-purple) !important;
+    border: 2px solid var(--pc-purple) !important;
 }
 .stButton > button:hover, .stDownloadButton > button:hover {
-    background: rgba(245, 165, 36, 0.1) !important;
+    background: rgba(79, 61, 245, 0.08) !important;
 }
 .stButton > button[kind="primary"] {
-    background: var(--pc-amber) !important;
-    color: #0A0E12 !important;
+    background: var(--pc-purple) !important;
+    color: #FFFFFF !important;
+    border: 2px solid var(--pc-purple) !important;
 }
-.stButton > button[kind="primary"]:hover { background: #FFC168 !important; }
+.stButton > button[kind="primary"]:hover { background: #3D2ED0 !important; }
 
 div[data-testid="stTabs"] button[role="tab"] {
     color: var(--pc-text-muted) !important;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
 }
 div[data-testid="stTabs"] button[aria-selected="true"] {
-    color: var(--pc-amber) !important;
+    color: var(--pc-purple) !important;
 }
-div[data-testid="stTabs"] div[data-baseweb="tab-highlight"] { background-color: var(--pc-amber) !important; }
+div[data-testid="stTabs"] div[data-baseweb="tab-highlight"] { background-color: var(--pc-purple) !important; }
 div[data-testid="stTabs"] div[data-baseweb="tab-border"] { background-color: var(--pc-border) !important; }
 
 div[data-testid="stExpander"] {
     background: var(--pc-surface);
     border: 1px solid var(--pc-border) !important;
-    border-radius: 4px;
+    border-radius: 6px;
 }
-div[data-testid="stDataFrame"] { border: 1px solid var(--pc-border); border-radius: 4px; }
-.stProgress > div > div { background-color: var(--pc-amber) !important; }
-div[data-testid="stAlertContentInfo"], div[data-testid="stAlertContentSuccess"], div[data-testid="stAlertContentError"] {
-    font-family: 'JetBrains Mono', monospace;
-}
+div[data-testid="stDataFrame"] { border: 1px solid var(--pc-border); border-radius: 6px; }
+.stProgress > div > div { background-color: var(--pc-purple) !important; }
 
 .pc-footer {
     margin-top: 2rem;
@@ -222,10 +216,10 @@ def draw_boxes(bgr_image: np.ndarray, boxes: np.ndarray) -> np.ndarray:
     out = bgr_image.copy()
     for x1, y1, x2, y2, score in boxes:
         x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-        cv2.rectangle(out, (x1, y1), (x2, y2), (79, 70, 229), 3)
+        cv2.rectangle(out, (x1, y1), (x2, y2), (245, 61, 79), 3)
         label = f"{score:.2f}"
         (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 2)
-        cv2.rectangle(out, (x1, max(0, y1 - th - 10)), (x1 + tw + 8, y1), (79, 70, 229), -1)
+        cv2.rectangle(out, (x1, max(0, y1 - th - 10)), (x1 + tw + 8, y1), (245, 61, 79), -1)
         cv2.putText(out, label, (x1 + 4, max(12, y1 - 6)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2)
     return out
@@ -381,12 +375,10 @@ def render_hero() -> None:
     st.markdown(
         """
         <div class="pc-hero">
-            <div class="pc-live">
-                <div class="pc-live-dot"></div>
-                <span class="pc-live-label">live · local inference · cpu</span>
-            </div>
-            <h1>people_counter<span class="accent">.detect()</span></h1>
-            <p>Local person detection &amp; line-crossing count. YOLOX-nano · ONNX Runtime.
+            <div class="pc-badge">Local inference · no cloud</div>
+            <h1>People, <span class="accent">counted.</span></h1>
+            <p>Detects people in a photo, or tracks them across a video and counts
+            line crossings — IN / OUT / NET. YOLOX-nano · ONNX Runtime.
             Nothing you upload ever leaves this process.</p>
         </div>
         """,
@@ -468,7 +460,7 @@ def main() -> None:
     st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
     render_hero()
 
-    tab_detect, tab_about = st.tabs(["detect", "about"])
+    tab_detect, tab_about = st.tabs(["Detect", "About"])
 
     with tab_detect:
         mode = st.radio("Mode", ["Image", "Video"], horizontal=True)
